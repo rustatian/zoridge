@@ -120,6 +120,7 @@ const Frame = struct {
             @panic("options length must be less than 40 bytes (10 4-bytes words)");
         }
 
+        // allocate an array of 10 u32
         var options = try alloc.alloc(u32, 10);
         // zero out the options
         @memset(options, 0);
@@ -127,7 +128,7 @@ const Frame = struct {
         var i: u8 = 0;
         var j: usize = 0;
 
-        while (i <= optsLen * WORD) {
+        while (i != optsLen * WORD) {
             options[j] = options[j] | @as(u32, self.header[lb + i]);
             options[j] = options[j] | (@as(u32, self.header[lb + i + 1]) << 8);
             options[j] = options[j] | (@as(u32, self.header[lb + i + 2]) << 16);
@@ -145,7 +146,7 @@ test "write options" {
     const f = try Frame.init(alloc);
     defer alloc.destroy(f);
 
-    var opts = [_]u32{ 123, 1234 };
+    var opts = [_]u32{ 123, 1234, 11, 112, 123, 12333, 1235, 123155, 1235, 5555 };
     f.write_options(opts[0..]);
 
     const readOpts = try f.read_options(alloc);
@@ -153,12 +154,13 @@ test "write options" {
     if (readOpts) |readopts| {
         defer alloc.free(readopts);
 
-        std.debug.print("readopts: {any}\n", .{readopts});
         try testing.expect(readopts.len == 10);
-        try testing.expect(readopts[0] == 123);
-        try testing.expect(readopts[1] == 1234);
+        for (opts, 0..) |opt, i| {
+            try testing.expect(readopts[i] == opt);
+        }
     } else {
-        @panic("read options failed");
+        std.debug.print("readOpts is null\n");
+        testing.expect(false);
     }
 }
 
