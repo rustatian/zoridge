@@ -159,8 +159,8 @@ test "write options" {
             try testing.expect(readopts[i] == opt);
         }
     } else {
-        std.debug.print("readOpts is null\n");
-        testing.expect(false);
+        std.debug.print("readOpts is null\n", .{});
+        try testing.expect(false);
     }
 }
 
