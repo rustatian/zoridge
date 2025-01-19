@@ -27,11 +27,19 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const frame_ut = b.addTest(.{
+        .root_source_file = b.path("src/frame/frame.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+    const run_frame_ut = b.addRunArtifact(frame_ut);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request
     // running the unit tests.
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&run_lib_unit_tests.step);
+    test_step.dependOn(&run_frame_ut.step);
 }
